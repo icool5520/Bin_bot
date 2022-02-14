@@ -3,16 +3,16 @@ import ast
 
 
 def create_tables():
-	db_file = "db.db"
-	conn = sqlite3.connect(db_file)
-	cur = conn.cursor()
-	with conn:
-		cur.execute(f"""CREATE TABLE IF NOT EXISTS users(
+    db_file = "db.db"
+    conn = sqlite3.connect(db_file)
+    cur = conn.cursor()
+    with conn:
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS users(
 						user_id INTEGER PRIMARY KEY NOT NULL,
 						state TEXT NOT NULL,
 						data TEXT NOT NULL)""")
-	with conn:
-		cur.execute(f"""CREATE TABLE IF NOT EXISTS coins(
+    with conn:
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS coins(
 						name TEXT NOT NULL,
 						price TEXT NOT NULL,
 						changes TEXT NOT NULL,
@@ -20,178 +20,129 @@ def create_tables():
 
 
 def check_user_id(_user_id):
-	db_file = "db.db"
-	conn = None
-	check = False
-	try:
-		sql = f"""SELECT * FROM users WHERE user_id={_user_id}"""
-		conn = sqlite3.connect(db_file)
-		cur = conn.cursor()
-		cur.execute(sql)
-		data = cur.fetchone()
-		if not data:
-			cur.close()
-			add_user(_user_id)
-			check = True
-		else:
-			cur.close()
-	except Exception as ex:
-		print("check_user_id", ex)
-	finally:
-		if conn is not None:
-			conn.close()
+    db_file = "db.db"
+    conn = None
+    check = False
+    try:
+        sql = f"""SELECT * FROM users WHERE user_id={_user_id}"""
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        cur.execute(sql)
+        data = cur.fetchone()
+        if not data:
+            cur.close()
+            add_user(_user_id)
+            check = True
+        else:
+            cur.close()
+    except Exception as ex:
+        print("check_user_id", ex)
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def add_user(_user_id):
-	db_file = "db.db"
-	conn = None
-	try:
-		sql = f"""INSERT INTO users(user_id, state, data) VALUES(?, ?, ?);"""
-		conn = sqlite3.connect(db_file)
-		cur = conn.cursor()
-		mass = {'id':'', 'categor':'', 'name':'', 'price':''}
-		cur.execute(sql, (_user_id,'start', str(mass)))
-		conn.commit()
-		cur.close()
-	except Exception as ex:
-		print('add_user:', ex)
-	finally:
-		if conn is not None:
-			conn.close()
+    db_file = "db.db"
+    conn = None
+    try:
+        sql = f"""INSERT INTO users(user_id, state, data) VALUES(?, ?, ?);"""
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        mass = {'id': '', 'categor': '', 'name': '', 'price': ''}
+        cur.execute(sql, (_user_id, 'start', str(mass)))
+        conn.commit()
+        cur.close()
+    except Exception as ex:
+        print('add_user:', ex)
+    finally:
+        if conn is not None:
+            conn.close()
+
 
 def get_coins():
-	db_file = "db.db"
-	conn = None
-	try:
-		sql = """SELECT * FROM coins"""
-		conn = sqlite3.connect(db_file)
-		cur = conn.cursor()
-		cur.execute(sql)
-		data = cur.fetchall()
-		cur.close()
-	except Exception as ex:
-		print('get_coins:', ex)
-	finally:
-		if conn is not None:
-			conn.close()
-		return data
+    db_file = "db.db"
+    conn = None
+    try:
+        sql = """SELECT * FROM coins"""
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        cur.execute(sql)
+        data = cur.fetchall()
+        cur.close()
+    except Exception as ex:
+        print('get_coins:', ex)
+    finally:
+        if conn is not None:
+            conn.close()
+        return data
 
 
 def up_user_state(_user_id, _state):
-	db_file = "db.db"
-	conn = None
-	try:
-		sql = f"""UPDATE users SET state="{_state}" WHERE user_id={_user_id}"""
-		conn = sqlite3.connect(db_file)
-		cur = conn.cursor()
-		cur.execute(sql)
-		conn.commit()
-		cur.close()
-	except Exception as ex:
-		print('up_user_state:', ex)
-	finally:
-		if conn is not None:
-			conn.close()
+    db_file = "db.db"
+    conn = None
+    try:
+        sql = f"""UPDATE users SET state="{_state}" WHERE user_id={_user_id}"""
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        cur.execute(sql)
+        conn.commit()
+        cur.close()
+    except Exception as ex:
+        print('up_user_state:', ex)
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def get_user_state(_user_id):
-	db_file = "db.db"
-	conn = None
-	try:
-		sql = f"""SELECT state FROM users WHERE user_id={_user_id}"""
-		conn = sqlite3.connect(db_file)
-		cur = conn.cursor()
-		cur.execute(sql)
-		data = cur.fetchone()
-		cur.close()
-	except Exception as ex:
-		print('get_user_state:', ex)
-	finally:
-		if conn is not None:
-			conn.close()
-		return data[0]
+    db_file = "db.db"
+    conn = None
+    try:
+        sql = f"""SELECT state FROM users WHERE user_id={_user_id}"""
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        cur.execute(sql)
+        data = cur.fetchone()
+        cur.close()
+    except Exception as ex:
+        print('get_user_state:', ex)
+    finally:
+        if conn is not None:
+            conn.close()
+        return data[0]
 
 
 def set_coin(_name, _price, _changes, _photo):
-	db_file = "db.db"
-	conn = None
-	try:
-		sql = f"""INSERT INTO coins(name,price,changes,photo) VALUES(?,?,?,?)"""
-		conn = sqlite3.connect(db_file)
-		cur = conn.cursor()
-		cur.execute(sql, (_name,_price,_changes,_photo))
-		conn.commit()
-		cur.close()
-	except Exception as ex:
-		print('set_coin:', ex)
-	finally:
-		if conn is not None:
-			conn.close()
+    db_file = "db.db"
+    conn = None
+    try:
+        sql = f"""INSERT INTO coins(name,price,changes,photo) VALUES(?,?,?,?)"""
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        cur.execute(sql, (_name, _price, _changes, _photo))
+        conn.commit()
+        cur.close()
+    except Exception as ex:
+        print('set_coin:', ex)
+    finally:
+        if conn is not None:
+            conn.close()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	'''with conn:
-		cur.execute(f"""CREATE TABLE IF NOT EXISTS cart(
-						id INTEGER PRIMARY KEY NOT NULL,
-						user_id INTEGER NOT NULL,
-						list_buy TEXT NOT NULL,
-						amount INTEGER NOT NULL,
-						status TEXT NOT NULL)""")
-	with conn:
-		cur.execute(f"""CREATE TABLE IF NOT EXISTS admins(
-						user_id INTEGER PRIMARY KEY NOT NULL,
-						state TEXT NOT NULL,
-						data TEXT)""")
+    '''with conn:
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS cart(
+                        id INTEGER PRIMARY KEY NOT NULL,
+                        user_id INTEGER NOT NULL,
+                        list_buy TEXT NOT NULL,
+                        amount INTEGER NOT NULL,
+                        status TEXT NOT NULL)""")
+    with conn:
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS admins(
+                        user_id INTEGER PRIMARY KEY NOT NULL,
+                        state TEXT NOT NULL,
+                        data TEXT)""")
 '''
+
 
 '''
 def check_user_id(_user_id):

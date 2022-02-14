@@ -10,6 +10,12 @@ def gen_markup():
     markup.add(btn1, btn2)
     return markup
 
+def gen_to_start_markup():
+    markup = types.InlineKeyboardMarkup()
+    btn1 = types.InlineKeyboardButton("<< Назад", callback_data="start")
+    markup.add(btn1)
+    return markup
+
 
 
 

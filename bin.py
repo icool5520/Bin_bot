@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
-from telegram import InlineQueryResultPhoto
+# from telegram import InlineQueryResultPhoto
+import telegram
 from uuid import uuid4
 import base64
 import requests
@@ -24,25 +25,38 @@ def command_start(message):
     except Exception as ex:
         print('start_msg:', ex)
 
+
+@bot.callback_query_handler(func=lambda call: call.data == "start")
+def back_to_start(call):
+    try:
+        uid = call.from_user.id
+        cid = uid
+        db_cmd.check_user_id(uid)
+        db_cmd.up_user_state(uid, 'start')
+        bot.send_message(cid, "CrypyoMonitor", reply_markup=markup.gen_markup())
+    except Exception as ex:
+        print('back_to_start:', ex)
+
+
 @bot.inline_handler(func=lambda query: types.InlineQuery)
 def query_text(inline_query):
     try:
+        uid = inline_query.from_user.id
         data = db_cmd.get_coins()
         lst_inline = []
+        db_cmd.up_user_state(uid, 'inline')
         for i in data:
-            #if inline_query.query.split('/')[1]=='':
-                text = f'Название:{i[0]}\nЦена:{i[1]}\nРост:{i[2]}'
-                r = types.InlineQueryResultArticle(
-                    id=str(uuid4()),
-                    title=str(i[0]),
-                    description=f'Цена:{i[1]}',
-                    thumb_url=f'{i[3]}',
-                    input_message_content=types.InputTextMessageContent(
-                        message_text=f"{text}\n'[.]({i[3]})'", parse_mode='Markdown'),
-                    reply_markup = markup.gen_markup()
-                )
-                print("iiiiiiiiiiiiiiiiiiiii",i, "rrrrrrrrrrrrrrrrrrrrr",r)
-                lst_inline.append(r)
+            text = f'Название:{i[0]}\nЦена:{i[1]}\nРост:{i[2]}'
+            r = types.InlineQueryResultArticle(
+                id=str(uuid4()),
+                title=str(i[0]),
+                description=f'Цена:{i[1]}',
+                thumb_url=f'{i[3]}',
+                input_message_content=types.InputTextMessageContent(
+                    message_text=f"{text}\n[\u00A0]({i[3]})", parse_mode='Markdown'),
+                reply_markup=markup.gen_to_start_markup()
+            )
+            lst_inline.append(r)
         bot.answer_inline_query(inline_query.id, lst_inline, 0, switch_pm_parameter='start')
     except Exception as ex:
         print('query_text:', ex)
@@ -51,32 +65,28 @@ def query_text(inline_query):
 @bot.callback_query_handler(func=lambda call: call.data == "add")
 def callback_add_coin(call):
     try:
-        cid = call.message.chat.id
         uid = call.from_user.id
-        if cid==uid:
-            db_cmd.up_user_state(uid, "add_coin")
-            bot.send_message(cid, "Введите информацию о монете")
+        db_cmd.up_user_state(uid, "add_coin")
+        bot.send_message(uid, "Введите информацию о монете")
 
     except Exception as ex:
         print('callback_add_coin:', ex)
 
 
-#@bot.message_handler(func=lambda m: True)
-@bot.message_handler(content_types=['text'])
+@bot.message_handler(func=lambda m: True)
+# @bot.message_handler(content_types=['text'])
 def echo_text(message):
-    try:    
-        print('echo_text')
+    try:
         cid = message.chat.id
         uid = message.from_user.id
         if cid == uid:
             state = db_cmd.get_user_state(uid)
-            print(state)
-            if state[0] == 'add_coin':
+            if state == 'add_coin':
                 global lst_text
                 lst_text = message.text.split(',')
                 db_cmd.up_user_state(uid, 'photo')
                 bot.send_message(cid, 'Пришли logo монеты')
-            
+
     except Exception as ex:
         print('echo_text:', ex)
 
@@ -88,47 +98,23 @@ def get_photo(message):
         uid = message.from_user.id
         state = db_cmd.get_user_state(uid)
         if cid == uid:
-            if state[0] == 'photo':
+            if state == 'photo':
                 file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
-                print(file_info)
-                print(lst_text)
                 img = bot.download_file(file_info.file_path)
                 src = file_info.file_path
                 with open(src, 'wb') as new_file:
                     new_file.write(img)
-                with open(f'photos/{src.split(r'/')[1]}', 'rb') as file:
+                with open(f"photos/{src.split('/')[1]}", 'rb') as file:
                     url = 'https://api.imgbb.com/1/upload'
-                    payload = {
-                    "key":imgBB_key,
-                    "image": base64.b64encode(file.read())
-                    }
+                    payload = {"key": imgBB_key, "image": base64.b64encode(file.read())}
                     res = requests.post(url, payload)
                     resp = res.json()
-
-                db_cmd.set_coin(lst_text[0], lst_text[1], lst_text[2], resp....)
+                    print(resp["data"]["url"])
+                db_cmd.set_coin(lst_text[0], lst_text[1], lst_text[2], resp["data"]["url"])
 
 
     except Exception as ex:
         print('get_photo:', ex)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 '''
@@ -420,13 +406,11 @@ def got_payment(message):
     # up_state_pay(uid, 'start')
 
 '''
-bot.skip_pending = True
-bot.polling(non_stop=True, interval=0)
+# bot.skip_pending = True
+# bot.polling(non_stop=True, interval=0)
 
-
-# while True:
-#     try:    
-#         bot.polling(non_stop=True, interval=0)
-#     except Exception as ex:
-#         print('Main Bot:', ex)
-
+while True:
+    try:
+        bot.polling(non_stop=True, interval=0)
+    except Exception as ex:
+        print('Main Bot:', ex)
